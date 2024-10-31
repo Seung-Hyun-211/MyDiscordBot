@@ -32,11 +32,13 @@ namespace App
 
         void Init()
         {
-
             List<Song> log = JsonFileHandler.Read<Song>(JsonPath);
 
             foreach (var item in log)
+            {
+                Console.WriteLine($"{item.url} 의 링크 {item.title} 제목");
                 history.Add(item.url, item);
+            }
         }
         void CheckDir()
         {
@@ -57,8 +59,11 @@ namespace App
         }
         public Song? SearchHistory(string fullString)
         {
-            if (history.ContainsKey(fullString)) return history[fullString];
-            else return null;
+            Console.WriteLine("search histroy " + fullString + history.ContainsKey(fullString));
+            if (history.ContainsKey(fullString))
+                return history[fullString];
+            else
+                return null;
         }
         public void AddHistroy(Song s)
         {

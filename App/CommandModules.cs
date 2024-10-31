@@ -16,45 +16,40 @@ namespace App
         {
             // Get the audio channel
             channel = (Context.User as IGuildUser)?.VoiceChannel;
-            if (channel == null) { await Context.Channel.SendMessageAsync("User must be in a voice channel, or a voice channel must be passed as an argument."); return; }
+            if (channel == null) { await Context.Channel.SendMessageAsync("채널에 입장해 있지 않음."); return; }
 
-            // For the next step with transmitting audio, you would want to pass this Audio Client in to a service.
             DiscordBot.audioClient = await channel.ConnectAsync();
-            Console.WriteLine(audioClient.ConnectionState);
-
         }
+
         [Command("p", RunMode = RunMode.Async)]
         public async Task PlayCommand(params string[] queries)
         {
             try
             {
-                
+
                 string fullString = string.Join(" ", queries);
                 Console.WriteLine(fullString);
                 Song? search = null;
 
-                if (fullString.Substring(0, 4) != "http")
+                if (string.Compare(fullString.Substring(0, 4), "http") != 0)
                 {
                     Console.WriteLine("노래 검색중 ...");
                     search = await Youtube.SearchTitle(fullString);
                     fullString = search.url;
                 }
                 search = PlayList.Instance.SearchHistory(fullString);
-
+                Console.WriteLine(search.title);
                 if (search == null)
                 {
                     Console.WriteLine("url 검색중 ...");
                     search = await Youtube.SearchURL(fullString);
-                }
-                Console.WriteLine("처음 듣는 노래를 다운로드중" + fullString);
-                await Youtube.DownloadMp3(fullString);
-                PlayList.Instance.AddHistroy(search);
-                Console.WriteLine("노래 정보를 기록하는중");
-                PlayList.Instance.RecordHistroy();
+                    Console.WriteLine("처음 듣는 노래를 다운로드중" + fullString);
+                    await Youtube.DownloadMp3(fullString);
+                    PlayList.Instance.AddHistroy(search);
+                    Console.WriteLine("노래 정보를 기록하는중");
+                    PlayList.Instance.RecordHistroy();
 
-                string audioPath = "Audio/" + search.title.Replace('/', '-') + ".mp3";
-                search.Print();
-                Console.WriteLine("재생 ... " + audioPath);
+                }
                 PlayList.Instance.AddList(search);
                 await DiscordBot.PlayMusic();
             }
@@ -78,8 +73,6 @@ namespace App
             PlayList.Instance.SearchArtist(fullString);
             await DiscordBot.PlayMusic();
         }
-
-
 
     }
 }

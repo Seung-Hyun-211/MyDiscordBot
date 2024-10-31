@@ -27,11 +27,9 @@ namespace App
 {
     class DiscordBot
     {
-        internal const string SongsPath = "JsonDatas/Songs.json";
         internal DiscordSocketClient client;
         public static IAudioClient? audioClient;
         internal IVoiceChannel voiceChannel;
-
 
         private const string Token = "";
         private CommandService commands;
@@ -92,10 +90,10 @@ namespace App
         {
             if (nowPlaying) return;
             nowPlaying = true;
-            string curPath = "/Audio/"+ PlayList.Instance.GetPath()+".mp3";
+            string curPath = $"Audio/{PlayList.Instance.GetPath()}.mp3";
             Console.WriteLine("현재 곡 위치 : " + curPath);
 
-            if (!Directory.Exists(curPath))
+            if (!File.Exists(curPath))
             {
                 Console.WriteLine("경로 오류");
             }

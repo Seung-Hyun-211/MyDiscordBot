@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Reflection.Metadata;
-using DSharpPlus.Entities;
 using NAudio.Wave;
 using YoutubeExplode.Exceptions;
 using System.Linq;
