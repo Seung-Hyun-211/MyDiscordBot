@@ -36,20 +36,21 @@ namespace App
         private const string Token = "";
         private CommandService commands;
         private IServiceProvider service;
-
-
-        List<String> curPlayList = new List<string>();
+        public static PlayList pl;
         public static bool nowPlaying;
 
         public async Task StartBotAsync()
         {
+            pl = await PlayList.CreateAsync();
             nowPlaying = false;
-            client = new DiscordSocketClient(new DiscordSocketConfig() { LogLevel = LogSeverity.Verbose,
+            client = new DiscordSocketClient(new DiscordSocketConfig()
+            {
+                LogLevel = LogSeverity.Verbose,
                 GatewayIntents = GatewayIntents.Guilds | GatewayIntents.GuildMessages | GatewayIntents.MessageContent | GatewayIntents.GuildVoiceStates,
                 HandlerTimeout = 10000
             });
             commands = new CommandService(new CommandServiceConfig() { LogLevel = LogSeverity.Verbose });
-            
+
 
             //자 드가자
             await client.LoginAsync(TokenType.Bot, Token);
@@ -74,7 +75,6 @@ namespace App
             int argPos = 0;
             if (userMsg.HasStringPrefix("!", ref argPos))
             {
-                // 커맨드 실행
                 var result = await commands.ExecuteAsync(context, argPos, service);
                 if (!result.IsSuccess) Console.WriteLine("error ... ?");
             }
@@ -94,27 +94,34 @@ namespace App
         {
             if (nowPlaying) return;
             nowPlaying = true;
-            string curPath = Program.GetPath();
+            string curPath = pl.GetPath();
             Console.WriteLine("현재 곡 위치 : " + curPath);
-            // MediaFoundationReader를 사용하여 MP3 파일 읽기
-            using (var reader = new MediaFoundationReader(curPath))
-            using (var output = audioClient.CreatePCMStream(AudioApplication.Music))
+
+            if (!Directory.Exists(curPath))
             {
-                byte[] buffer = new byte[4096];
-                int bytesRead;
-
-                while (nowPlaying && (bytesRead = reader.Read(buffer, 0, buffer.Length)) > 0)
+                Console.WriteLine("경로 오류");
+            }
+            else
+            {
+                using (var reader = new MediaFoundationReader(curPath))
+                using (var output = audioClient.CreatePCMStream(AudioApplication.Music))
                 {
-                    await output.WriteAsync(buffer, 0, bytesRead);
-                }
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
 
-                await output.FlushAsync();
+                    while (nowPlaying && (bytesRead = reader.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        await output.WriteAsync(buffer, 0, bytesRead);
+                    }
+
+                    await output.FlushAsync();
+                }
             }
 
 
-            nowPlaying = false; // 노래 재생 완료 후 상태 변경
+            nowPlaying = false;
 
-            if (Program.curList.Count > 0)
+            if (pl.GetListCount() > 0)
             {
                 await PlayMusic();
             }
