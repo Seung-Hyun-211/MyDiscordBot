@@ -1,29 +1,39 @@
+using System.Runtime.CompilerServices;
 using YoutubeExplode.Playlists;
 
 namespace App
 {
     public class PlayList
     {
-        static string JsonPath = "JsonDatas/Songs.json";
-        Dictionary<string, Song> history;
-        List<string> curList;
-        public static async Task<PlayList> CreateAsync()
+        private static PlayList _instance;
+        public static PlayList Instance
         {
-            PlayList instance = new PlayList();
-            await instance.Init();
-            return instance;
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = new PlayList();
+                }
+
+                return _instance;
+            }
         }
 
+        static string JsonPath = "JsonDatas/Songs.json";
+        Dictionary<string, Song> history;
+        List<Song> curList;
         private PlayList()
         {
             history = new Dictionary<string, Song>();
-            curList = new List<string>();
+            curList = new List<Song>();
             CheckDir();
+            Init();
         }
-        private async Task Init()
+
+        void Init()
         {
 
-            List<Song> log = await JsonFileHandler.ReadAsync<Song>(JsonPath);
+            List<Song> log = JsonFileHandler.Read<Song>(JsonPath);
 
             foreach (var item in log)
                 history.Add(item.url, item);
@@ -52,16 +62,16 @@ namespace App
         }
         public void AddHistroy(Song s)
         {
-
+            history.Add(s.url, s);
         }
-        public void AddList(string path)
+        public void AddList(Song song)
         {
-            Console.WriteLine("리스트 추가됨 " + path);
-            curList.Add(path);
+            Console.WriteLine("리스트 추가됨 " + song.title);
+            curList.Add(song);
         }
         public string GetPath()
         {
-            string nextPath = curList.Count() > 0 ? curList[0] : "";
+            string nextPath = curList.Count() > 0 ? curList[0].title : "";
             curList.RemoveAt(0);
             return nextPath;
         }
@@ -79,7 +89,7 @@ namespace App
         }
         public void RandomMix()
         {
-            List<string> temp = new List<string>();
+            List<Song> temp = new List<Song>();
             int curSize = curList.Count();
             if (curSize <= 1) return;
             var rand = new Random();
@@ -98,14 +108,12 @@ namespace App
             var result =
                 (from s in history
                  where CompareArtist(s.Value.author, artist)
-                 select s.Value.title).ToList();
+                 select s.Value).ToList();
             // 결과가 비어있지 않으면 curList에 추가
-            string pathHead = "Audio/";
-
             if (result != null && result.Count > 0)
             {
-                foreach (var title in result)
-                    curList.Add(pathHead + title + ".mp3");
+                foreach (var song in result)
+                    curList.Add(song);
             }
             else
             {
@@ -139,9 +147,9 @@ namespace App
             return bIndex == b.Length;
         }
 
-        public async Task RecordHistroy()
+        public void RecordHistroy()
         {
-            await JsonFileHandler.WriteAsync("JsonDatas/Songs.json", history.Values.ToList());
+            JsonFileHandler.Write<List<Song>>("JsonDatas/Songs.json", history.Values.ToList());
         }
     }
 

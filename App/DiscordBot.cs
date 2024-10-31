@@ -36,12 +36,10 @@ namespace App
         private const string Token = "";
         private CommandService commands;
         private IServiceProvider service;
-        public static PlayList pl;
         public static bool nowPlaying;
 
         public async Task StartBotAsync()
         {
-            pl = await PlayList.CreateAsync();
             nowPlaying = false;
             client = new DiscordSocketClient(new DiscordSocketConfig()
             {
@@ -94,7 +92,7 @@ namespace App
         {
             if (nowPlaying) return;
             nowPlaying = true;
-            string curPath = pl.GetPath();
+            string curPath = "/Audio/"+ PlayList.Instance.GetPath()+".mp3";
             Console.WriteLine("현재 곡 위치 : " + curPath);
 
             if (!Directory.Exists(curPath))
@@ -121,7 +119,7 @@ namespace App
 
             nowPlaying = false;
 
-            if (pl.GetListCount() > 0)
+            if (PlayList.Instance.GetListCount() > 0)
             {
                 await PlayMusic();
             }

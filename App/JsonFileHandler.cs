@@ -5,33 +5,31 @@ namespace App
 
     public static class JsonFileHandler
     {
-        public static async Task<List<T>> ReadAsync<T>(string filePath)
+        public static List<T> Read<T>(string filePath)
         {
             using (StreamReader r = new StreamReader(filePath))
             {
-                string json = await r.ReadToEndAsync();
+                string json = r.ReadToEnd();
                 return JsonConvert.DeserializeObject<List<T>>(json);
             }
         }
 
-        public static async Task WriteAsync<T>(string filePath, T item)
+        public static void Write<T>(string filePath, T item)
         {
             string json = JsonConvert.SerializeObject(item, Formatting.Indented);
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                await writer.WriteAsync(json);
+                writer.Write(json);
             }
-            return;
         }
-        public static async Task WriteAsync<T>(string filePath, List<T> items)
+
+        public static void Write<T>(string filePath, List<T> items)
         {
             string json = JsonConvert.SerializeObject(items, Formatting.Indented);
             using (StreamWriter writer = new StreamWriter(filePath))
             {
-                await writer.WriteAsync(json);
+                writer.Write(json);
             }
-            return;
         }
-
     }
 }
