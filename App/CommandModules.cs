@@ -1,9 +1,6 @@
 using Discord;
 using Discord.Audio;
 using Discord.Commands;
-using NAudio.CoreAudioApi;
-using System.Diagnostics;
-
 
 
 namespace App
@@ -18,6 +15,8 @@ namespace App
             channel = (Context.User as IGuildUser)?.VoiceChannel;
             if (channel == null) { await Context.Channel.SendMessageAsync("채널에 입장해 있지 않음."); return; }
 
+            await Context.Message.DeleteAsync();
+            await Context.Channel.SendMessageAsync("ㅎㅇ");
             DiscordBot.audioClient = await channel.ConnectAsync();
         }
 
@@ -38,23 +37,23 @@ namespace App
                     fullString = search.url;
                 }
                 search = PlayList.Instance.SearchHistory(fullString);
-                Console.WriteLine(search.title);
                 if (search == null)
                 {
                     Console.WriteLine("url 검색중 ...");
                     search = await Youtube.SearchURL(fullString);
-                    Console.WriteLine("처음 듣는 노래를 다운로드중" + fullString);
+                    Console.WriteLine("다운로드중 ... " + fullString);
                     await Youtube.DownloadMp3(fullString);
                     PlayList.Instance.AddHistroy(search);
-                    Console.WriteLine("노래 정보를 기록하는중");
                     PlayList.Instance.RecordHistroy();
-
                 }
                 PlayList.Instance.AddList(search);
+                await Context.Message.DeleteAsync();
+                await Context.Channel.SendMessageAsync("재생 : " + search.title);
                 await DiscordBot.PlayMusic();
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e.Message);
             }
         }
 
@@ -74,5 +73,22 @@ namespace App
             await DiscordBot.PlayMusic();
         }
 
+        public async void Reaction(SocketCommandContext context, string text)
+        {
+            var lastContext = DiscordBot.lastContext;
+
+            // 기존 Context의 메시지를 삭제
+            if (lastContext != null)
+            {
+                await lastContext.Message.DeleteAsync();
+            }
+            var botMessage = await context.Channel.SendMessageAsync(text);
+
+            var newContext = new SocketCommandContext(context.Client, botMessage);
+            // 새로운 Context 업데이트 (필요한 경우)
+            DiscordBot.lastContext = newContext;
+
+            context.Message.DeleteAsync();
+        }
     }
 }

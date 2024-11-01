@@ -32,11 +32,11 @@ namespace App
 
         void Init()
         {
-            List<Song> log = JsonFileHandler.Read<Song>(JsonPath);
+            List<Song> log = JsonFileHandler.Read<List<Song>>(JsonPath);
 
             foreach (var item in log)
             {
-                Console.WriteLine($"{item.url} 의 링크 {item.title} 제목");
+                Console.WriteLine($"{item.title} 의 링크 {item.url}");
                 history.Add(item.url, item);
             }
         }
@@ -71,7 +71,6 @@ namespace App
         }
         public void AddList(Song song)
         {
-            Console.WriteLine("리스트 추가됨 " + song.title);
             curList.Add(song);
         }
         public string GetPath()

@@ -1,28 +1,8 @@
-using System;
-using System.IO;
-using System.Reflection;
-using System.Collections;
-using System.Threading.Tasks;
-using System.Linq;
-
 using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using Discord.Audio;
 using NAudio.Wave;
-
-using Microsoft.Extensions.DependencyInjection;
-
-
-using Newtonsoft.Json;
-using Discord.Rest;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using AngleSharp.Common;
-using System.Security.Authentication.ExtendedProtection;
-using YoutubeExplode.Playlists;
-using System.Net.Security;
-
 namespace App
 {
     class DiscordBot
@@ -31,11 +11,10 @@ namespace App
         public static IAudioClient? audioClient;
         internal IVoiceChannel voiceChannel;
 
-        private const string Token = "";
         private CommandService commands;
         private IServiceProvider service;
         public static bool nowPlaying;
-
+        public static SocketCommandContext lastContext;
         public async Task StartBotAsync()
         {
             nowPlaying = false;
@@ -47,16 +26,13 @@ namespace App
             });
             commands = new CommandService(new CommandServiceConfig() { LogLevel = LogSeverity.Verbose });
 
-
-            //자 드가자
-            await client.LoginAsync(TokenType.Bot, Token);
+            await client.LoginAsync(TokenType.Bot, JsonFileHandler.Read<Config>("JsonDatas/config.json").DiscordToken);
             await client.StartAsync();
 
             await commands.AddModuleAsync<CommandModules>(service);
 
             client.MessageReceived += CommandAsync;
             client.Log += DiscordLog;
-            client.Ready += OnReady;
 
             //안꺼지게
             await Task.Delay(-1);
@@ -80,12 +56,6 @@ namespace App
             Console.WriteLine(log);
             return Task.CompletedTask;
         }
-        private static Task OnReady()
-        {
-            Console.WriteLine("bot ready");
-            return Task.CompletedTask;
-        }
-
         public static async Task PlayMusic()
         {
             if (nowPlaying) return;

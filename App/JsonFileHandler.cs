@@ -5,12 +5,12 @@ namespace App
 
     public static class JsonFileHandler
     {
-        public static List<T> Read<T>(string filePath)
+        public static T Read<T>(string filePath)
         {
             using (StreamReader r = new StreamReader(filePath))
             {
                 string json = r.ReadToEnd();
-                return JsonConvert.DeserializeObject<List<T>>(json);
+                return JsonConvert.DeserializeObject<T>(json);
             }
         }
 

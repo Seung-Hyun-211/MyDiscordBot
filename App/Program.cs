@@ -1,11 +1,4 @@
-﻿using System;
-using System.Reflection.Metadata;
-using NAudio.Wave;
-using YoutubeExplode.Exceptions;
-using System.Linq;
-using System.Collections.Generic;
-
-namespace App
+﻿namespace App
 {
     internal class Program
     {
@@ -14,6 +7,7 @@ namespace App
         {
             try
             {
+                if(PlayList.Instance == null) return;
                 Console.WriteLine("봇 생성중");
                 new DiscordBot().StartBotAsync().GetAwaiter().GetResult();
                 await Task.Delay(-1);
