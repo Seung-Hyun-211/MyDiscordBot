@@ -33,7 +33,7 @@ namespace App
             {
                 Console.WriteLine("first");
                 JoinChannel((Context.User as IGuildUser)?.VoiceChannel);
-                Task.Delay(1000);
+                Task.Delay(2000);
             }
 
 
@@ -88,8 +88,9 @@ namespace App
         [Command("s", RunMode = RunMode.Async)]
         public async Task SkipCommand()
         {
-            Console.WriteLine("노래 넘김");
             DiscordBot.Skip();
+            Context.Channel.SendMessageAsync("넘김");
+            
         }
 
         [Command("artist", RunMode = RunMode.Async)]
@@ -104,6 +105,7 @@ namespace App
         public async Task RandomMix(params string[] queries)
         {
             PlayList.Instance.RandomMix();
+            Context.Channel.SendMessageAsync("휘바휘바 섞었음");
         }
 
         [Command("playlist", RunMode = RunMode.Async)]
@@ -121,7 +123,7 @@ namespace App
 
             List<String> listURLs = await Youtube.GetVideoUrlsFromPlaylist(plID);
             int count = 0;
-            bool first = false;
+            bool first = true;
             if (listURLs.Count > 0)
             {
                 foreach (var item in listURLs)
@@ -143,11 +145,11 @@ namespace App
                     if (first)
                     {
                         first = false;
-                        await Context.Channel.SendMessageAsync("재생 : " + search.title);
-                        await DiscordBot.PlayMusic();
+                        DiscordBot.PlayMusic();
                     }
                 }
             }
+            Context.Channel.SendMessageAsync("추가됨... cnt : " + count);
         }
 
     }
