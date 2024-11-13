@@ -25,10 +25,11 @@ namespace App
         {
             try
             {
-
                 string fullString = string.Join(" ", queries);
                 Console.WriteLine(fullString);
                 Song? search = null;
+
+                await Context.Message.AddReactionAsync(new Emoji("✅"));
 
                 if (string.Compare(fullString.Substring(0, 4), "http") != 0)
                 {
@@ -43,9 +44,11 @@ namespace App
                     search = await Youtube.SearchURL(fullString);
                     Console.WriteLine("다운로드중 ... " + fullString);
                     await Youtube.DownloadMp3(fullString);
+                    search.title = search.title.Replace('/', '-');
                     PlayList.Instance.AddHistroy(search);
                     PlayList.Instance.RecordHistroy();
                 }
+
                 PlayList.Instance.AddList(search);
                 await Context.Message.DeleteAsync();
                 await Context.Channel.SendMessageAsync("재생 : " + search.title);
@@ -84,9 +87,9 @@ namespace App
             }
             var botMessage = await context.Channel.SendMessageAsync(text);
 
-            var newContext = new SocketCommandContext(context.Client, botMessage);
+            //var newContext = new SocketCommandContext(context.Client, botMessage);
             // 새로운 Context 업데이트 (필요한 경우)
-            DiscordBot.lastContext = newContext;
+            //DiscordBot.lastContext = newContext;
 
             context.Message.DeleteAsync();
         }

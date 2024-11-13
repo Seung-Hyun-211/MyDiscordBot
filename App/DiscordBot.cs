@@ -26,7 +26,7 @@ namespace App
             });
             commands = new CommandService(new CommandServiceConfig() { LogLevel = LogSeverity.Verbose });
 
-            await client.LoginAsync(TokenType.Bot, JsonFileHandler.Read<Config>("JsonDatas/config.json").DiscordToken);
+            await client.LoginAsync(TokenType.Bot, (string)JsonFileHandler.Read<Config>("JsonDatas/config.json").DiscordToken);
             await client.StartAsync();
 
             await commands.AddModuleAsync<CommandModules>(service);
