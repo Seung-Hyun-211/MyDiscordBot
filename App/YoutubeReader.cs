@@ -106,6 +106,40 @@ namespace App
             }
         }
 
+        public static async Task<List<string>> GetVideoUrlsFromPlaylist(string playlistId)
+        {
+            // YouTube 서비스 초기화
+            var youtubeService = new YouTubeService(new BaseClientService.Initializer()
+            {
+                ApiKey = apiKey,
+                ApplicationName = "YouTubeSearchApp"
+            });
+            var videoUrls = new List<string>();
+            string nextPageToken = null;
+
+            do
+            {
+                // Fetch the playlist items
+                var playlistRequest = youtubeService.PlaylistItems.List("snippet");
+                playlistRequest.PlaylistId = playlistId;
+                playlistRequest.PageToken = nextPageToken;
+
+                var playlistResponse = playlistRequest.Execute();
+
+                // Add the video URLs to the list
+                foreach (var playlistItem in playlistResponse.Items)
+                {
+                    string videoUrl = $"https://www.youtube.com/watch?v={playlistItem.Snippet.ResourceId.VideoId}";
+                    videoUrls.Add(videoUrl);
+                }
+
+                // Get the next page token if available
+                nextPageToken = playlistResponse.NextPageToken;
+
+            } while (nextPageToken != null); // Keep going if there's another page of videos
+
+            return videoUrls;
+        }
 
     }
 

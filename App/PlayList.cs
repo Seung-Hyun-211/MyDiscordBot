@@ -67,7 +67,8 @@ namespace App
         }
         public void AddHistroy(Song s)
         {
-            history.Add(s.url, s);
+            if (!history.ContainsKey(s.url))
+                history.Add(s.url, s);
         }
         public void AddList(Song song)
         {
