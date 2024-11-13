@@ -26,6 +26,8 @@ namespace App
             });
             commands = new CommandService(new CommandServiceConfig() { LogLevel = LogSeverity.Verbose });
 
+            Youtube.apiKey = (string)JsonFileHandler.Read<Config>("JsonDatas/config.json").YoutubeToken;
+
             await client.LoginAsync(TokenType.Bot, (string)JsonFileHandler.Read<Config>("JsonDatas/config.json").DiscordToken);
             await client.StartAsync();
 
