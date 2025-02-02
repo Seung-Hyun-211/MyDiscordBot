@@ -70,9 +70,14 @@ namespace App
             if (!history.ContainsKey(s.url))
                 history.Add(s.url, s);
         }
+
         public void AddList(Song song)
         {
             curList.Add(song);
+        }
+        public void AddFirst(Song song)
+        {
+            curList.Insert(0, song);
         }
         public string GetPath()
         {
@@ -108,13 +113,14 @@ namespace App
             curList = temp;
             return;
         }
-        public void SearchArtist(string artist)
+        public int SearchArtist(string artist)
         {
             var result =
                 (from s in history
                  where CompareArtist(s.Value.author, artist)
                  select s.Value).ToList();
             // 결과가 비어있지 않으면 curList에 추가
+            int cnt = result.Count();
             if (result != null && result.Count > 0)
             {
                 foreach (var song in result)
@@ -124,6 +130,7 @@ namespace App
             {
                 Console.WriteLine("검색된 아티스트가 없습니다.");
             }
+            return cnt;
         }
         private bool CompareArtist(string a = "", string b = "")
         {

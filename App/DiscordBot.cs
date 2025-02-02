@@ -3,6 +3,9 @@ using Discord.WebSocket;
 using Discord.Commands;
 using Discord.Audio;
 using NAudio.Wave;
+using System.Diagnostics;
+using OpusSharp;
+
 namespace App
 {
     class DiscordBot
@@ -62,7 +65,8 @@ namespace App
         {
             if (nowPlaying) return;
             nowPlaying = true;
-            string curPath = $"Audio/{PlayList.Instance.GetPath()}.mp3";
+
+            string curPath = $"Audio/{PlayList.Instance.GetPath()}.opus"; // Opus 파일 경로
             Console.WriteLine("현재 곡 위치 : " + curPath);
 
             if (!File.Exists(curPath))
@@ -71,30 +75,89 @@ namespace App
             }
             else
             {
-                using (var reader = new MediaFoundationReader(curPath))
-                using (var output = audioClient.CreatePCMStream(AudioApplication.Music))
+                try
                 {
-                    byte[] buffer = new byte[4096];
-                    int bytesRead;
+                    // Opus -> PCM 변환을 위해 임시 PCM 파일 생성
+                    string pcmFilePath = $"{curPath}.pcm";  // PCM 파일 경로
 
-                    while (nowPlaying && (bytesRead = reader.Read(buffer, 0, buffer.Length)) > 0)
+                    // FFmpeg을 사용하여 Opus -> PCM 변환하고 메모리 스트림으로 처리
+                    using (var pcmStream = ConvertOpusToPcm(curPath))
                     {
-                        await output.WriteAsync(buffer, 0, bytesRead);
-                    }
+                        // PCM 스트리밍을 Discord로 전달
+                        using (var output = audioClient.CreatePCMStream(AudioApplication.Music))
+                        {
+                            byte[] buffer = new byte[4096];
+                            int bytesRead;
 
-                    await output.FlushAsync();
+                            while (nowPlaying && (bytesRead = await pcmStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                            {
+                                await output.WriteAsync(buffer, 0, bytesRead);
+
+                                if (bytesRead < buffer.Length)
+                                {
+                                    await Task.Delay(20);
+                                }
+                            }
+
+                            await output.FlushAsync();
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error playing Opus file: {ex.Message}");
                 }
             }
-
 
             nowPlaying = false;
 
             if (PlayList.Instance.GetListCount() > 0)
             {
-                await PlayMusic();
+                await PlayMusic();  // 다음 곡 재생
             }
 
             return;
+        }
+
+        // Opus -> PCM 변환 함수 (메모리 스트림 사용)
+        static Stream ConvertOpusToPcm(string opusFilePath)
+        {
+            try
+            {
+                var processStartInfo = new ProcessStartInfo
+                {
+                    FileName = @"C:\ffmpeg\bin\ffmpeg.exe",  // FFmpeg 경로
+                    Arguments = $"-i \"{opusFilePath}\" -ar 48000 -f s16le -ac 2 pipe:1", // pipe:1로 출력 스트림을 직접 받아옴
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                var process = Process.Start(processStartInfo);
+                if (process == null)
+                {
+                    throw new Exception("FFmpeg process failed to start.");
+                }
+
+                // FFmpeg에서 출력된 PCM 데이터를 메모리 스트림으로 받아옴
+                var memoryStream = new MemoryStream();
+                process.StandardOutput.BaseStream.CopyTo(memoryStream);
+                memoryStream.Position = 0;  // 스트림 처음으로 리셋
+
+                process.WaitForExit();
+                if (process.ExitCode != 0)
+                {
+                    throw new Exception($"Error converting Opus to PCM: {process.StandardError.ReadToEnd()}");
+                }
+
+                return memoryStream;  // 메모리 스트림 반환
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error converting Opus to PCM: {ex.Message}");
+                throw;
+            }
         }
         public static void Skip()
         {

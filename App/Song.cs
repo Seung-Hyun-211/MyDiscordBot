@@ -3,7 +3,7 @@ namespace App
     public class Song
     {
         public string title { get; set; }
-        public string url { get; private set; }
+        public string url { get; set; }
         public string author { get; private set; }
         public TimeSpan duration { get; private set; }
         public string[]? tags;

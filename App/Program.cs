@@ -7,7 +7,9 @@
         {
             try
             {
-                if(PlayList.Instance == null) return;
+                Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+                if (PlayList.Instance == null) return;
                 Console.WriteLine("봇 생성중");
                 new DiscordBot().StartBotAsync().GetAwaiter().GetResult();
                 await Task.Delay(-1);
