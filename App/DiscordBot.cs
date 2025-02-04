@@ -2,9 +2,7 @@ using Discord;
 using Discord.WebSocket;
 using Discord.Commands;
 using Discord.Audio;
-using NAudio.Wave;
 using System.Diagnostics;
-using OpusSharp;
 
 namespace App
 {
@@ -18,6 +16,7 @@ namespace App
         private IServiceProvider service;
         public static bool nowPlaying;
         public static SocketCommandContext lastContext;
+        public Queue<Action> requestQueue = new Queue<Action>();
         public async Task StartBotAsync()
         {
             nowPlaying = false;
@@ -29,7 +28,7 @@ namespace App
             });
             commands = new CommandService(new CommandServiceConfig() { LogLevel = LogSeverity.Verbose });
 
-            Youtube.apiKey = (string)JsonFileHandler.Read<Config>("JsonDatas/config.json").YoutubeToken;
+            YT.SetApi((string)JsonFileHandler.Read<Config>("JsonDatas/config.json").YoutubeToken);
 
             await client.LoginAsync(TokenType.Bot, (string)JsonFileHandler.Read<Config>("JsonDatas/config.json").DiscordToken);
             await client.StartAsync();
@@ -40,7 +39,14 @@ namespace App
             client.Log += DiscordLog;
 
             //안꺼지게
-            await Task.Delay(-1);
+            
+            while(true)
+            {
+                await Task.Delay(1000);
+                if(requestQueue.Count > 0)
+                    requestQueue.Dequeue().Invoke();
+            }
+
         }
         private async Task CommandAsync(SocketMessage msg)
         {

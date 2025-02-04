@@ -1,6 +1,4 @@
-using System.Runtime.CompilerServices;
-using YoutubeExplode.Playlists;
-
+using Google.Apis.YouTube.v3.Data;
 namespace App
 {
     public class PlayList
@@ -20,24 +18,23 @@ namespace App
         }
 
         static string JsonPath = "JsonDatas/Songs.json";
-        Dictionary<string, Song> history;
-        List<Song> curList;
+        Dictionary<string, Video> history;
+        List<Video> curList;
         private PlayList()
         {
-            history = new Dictionary<string, Song>();
-            curList = new List<Song>();
+            history = new Dictionary<string, Video>();
+            curList = new List<Video>();
             CheckDir();
             Init();
         }
 
         void Init()
         {
-            List<Song> log = JsonFileHandler.Read<List<Song>>(JsonPath);
+            List<Video> log = JsonFileHandler.Read<List<Video>>(JsonPath);
 
             foreach (var item in log)
             {
-                Console.WriteLine($"{item.title} 의 링크 {item.url}");
-                history.Add(item.url, item);
+                history.Add(item.Id, item);
             }
         }
         void CheckDir()
@@ -57,31 +54,31 @@ namespace App
                 File.WriteAllText(JsonPath, "[\n]");
             }
         }
-        public Song? SearchHistory(string fullString)
+        public Video? SearchHistory(string videoId)
         {
-            Console.WriteLine("search histroy " + fullString + history.ContainsKey(fullString));
-            if (history.ContainsKey(fullString))
-                return history[fullString];
+            Console.WriteLine("search histroy " + videoId + history.ContainsKey(videoId));
+            if (history.ContainsKey(videoId))
+                return history[videoId];
             else
                 return null;
         }
-        public void AddHistroy(Song s)
+        public void AddHistroy(Video s)
         {
-            if (!history.ContainsKey(s.url))
-                history.Add(s.url, s);
+            if (!history.ContainsKey(s.Id))
+                history.Add(s.Id, s);
         }
 
-        public void AddList(Song song)
+        public void AddList(Video s)
         {
-            curList.Add(song);
+            curList.Add(s);
         }
-        public void AddFirst(Song song)
+        public void AddFirst(Video s)
         {
-            curList.Insert(0, song);
+            curList.Insert(0, s);
         }
         public string GetPath()
         {
-            string nextPath = curList.Count() > 0 ? curList[0].title : "";
+            string nextPath = curList.Count() > 0 ? curList[0].Snippet.Title : "";
             curList.RemoveAt(0);
             return nextPath;
         }
@@ -99,7 +96,7 @@ namespace App
         }
         public void RandomMix()
         {
-            List<Song> temp = new List<Song>();
+            List<Video> temp = new List<Video>();
             int curSize = curList.Count();
             if (curSize <= 1) return;
             var rand = new Random();
@@ -113,56 +110,57 @@ namespace App
             curList = temp;
             return;
         }
-        public int SearchArtist(string artist)
-        {
-            var result =
-                (from s in history
-                 where CompareArtist(s.Value.author, artist)
-                 select s.Value).ToList();
-            // 결과가 비어있지 않으면 curList에 추가
-            int cnt = result.Count();
-            if (result != null && result.Count > 0)
-            {
-                foreach (var song in result)
-                    curList.Add(song);
-            }
-            else
-            {
-                Console.WriteLine("검색된 아티스트가 없습니다.");
-            }
-            return cnt;
-        }
-        private bool CompareArtist(string a = "", string b = "")
-        {
-            a = a.ToLower();
-            b = b.ToLower();
-
-            if (a == b || a.Contains(b))
-                return true;
-
-            return IsSubsequence(a, b);
-        }
-        private bool IsSubsequence(string a, string b)
-        {
-            int aIndex = 0;
-            int bIndex = 0;
-
-            while (aIndex < a.Length && bIndex < b.Length)
-            {
-                if (a[aIndex] == b[bIndex])
-                {
-                    bIndex++;
-                }
-                aIndex++;
-            }
-
-            return bIndex == b.Length;
-        }
-
         public void RecordHistroy()
         {
-            JsonFileHandler.Write<List<Song>>("JsonDatas/Songs.json", history.Values.ToList());
+            JsonFileHandler.Write<List<Video>>("JsonDatas/Songs.json", history.Values.ToList());
         }
+        // public int SearchArtist(string artist)
+        // {
+        //     var result =
+        //         (from s in history
+        //          where CompareArtist(s.Value.author, artist)
+        //          select s.Value).ToList();
+        //     // 결과가 비어있지 않으면 curList에 추가
+        //     int cnt = result.Count();
+        //     if (result != null && result.Count > 0)
+        //     {
+        //         foreach (var song in result)
+        //             curList.Add(song);
+        //     }
+        //     else
+        //     {
+        //         Console.WriteLine("검색된 아티스트가 없습니다.");
+        //     }
+        //     return cnt;
+        // }
+        // private bool CompareArtist(string a = "", string b = "")
+        // {
+        //     a = a.ToLower();
+        //     b = b.ToLower();
+
+        //     if (a == b || a.Contains(b))
+        //         return true;
+
+        //     return IsSubsequence(a, b);
+        // }
+        // private bool IsSubsequence(string a, string b)
+        // {
+        //     int aIndex = 0;
+        //     int bIndex = 0;
+
+        //     while (aIndex < a.Length && bIndex < b.Length)
+        //     {
+        //         if (a[aIndex] == b[bIndex])
+        //         {
+        //             bIndex++;
+        //         }
+        //         aIndex++;
+        //     }
+
+        //     return bIndex == b.Length;
+        // }
+
+
     }
 
 }
