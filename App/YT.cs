@@ -86,7 +86,7 @@ namespace App
             searchRequest.Q = str;
             searchRequest.MaxResults = 1;
             searchRequest.Type = "video";
-            searchRequest.Order = SearchResource.ListRequest.OrderEnum.ViewCount;
+            //searchRequest.Order = SearchResource.ListRequest.OrderEnum.ViewCount;
 
             var searchResponse = await searchRequest.ExecuteAsync();
 

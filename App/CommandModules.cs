@@ -47,6 +47,8 @@ namespace App
 
                     await GetPlayList(queries);
                     Thread.Sleep(5000);
+                    await Context.Message.DeleteAsync();
+                    await msg.DeleteAsync();
                     return;
                 }
                 else
@@ -86,7 +88,9 @@ namespace App
         public async Task SkipCommand()
         {
             DiscordBot.Skip();
-            Context.Channel.SendMessageAsync("넘김");
+
+            await Context.Message.DeleteAsync();
+            await Context.Channel.SendMessageAsync("넘김");
 
         }
 
@@ -110,14 +114,16 @@ namespace App
                 foreach (var item in listURLs)
                 {
                     Console.WriteLine($"{count++}");
+                    item.Snippet.Title = YT.ReplaceInvalidFileNameChars(item.Snippet.Title);
+
                     bool haveAudio = true;
                     var search = PlayList.Instance.SearchHistory(item.Id);
                     if (search == null)
                     {
-                        Console.WriteLine("다운로드중 ... " + item);
+                        Console.WriteLine("다운로드중 ... " + item.Snippet.Title);
                         if (await YT.DownloadMp3(item))
                         {
-                            PlayList.Instance.AddHistroy(search);
+                            PlayList.Instance.AddHistroy(item);
                             PlayList.Instance.RecordHistroy();
                         }
                         else
@@ -128,7 +134,7 @@ namespace App
                     }
                     if (haveAudio)
                     {
-                        PlayList.Instance.AddList(search);
+                        PlayList.Instance.AddList(item);
                         DiscordBot.PlayMusic();
                     }
                 }
