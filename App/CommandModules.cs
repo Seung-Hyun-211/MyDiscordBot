@@ -45,9 +45,8 @@ namespace App
                     var msg = await Context.Channel.SendMessageAsync("플레이 리스트 확인");
                     await msg.AddReactionAsync(new Emoji("🔃"));
 
-                    //await GetPlayList(queries);
+                    await GetPlayList(queries);
                     Thread.Sleep(5000);
-                    PlayCommand(tempQ);
                     return;
                 }
                 else
