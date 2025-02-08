@@ -12,6 +12,7 @@ namespace App
         [Command("join", RunMode = RunMode.Async)]
         public async Task JoinChannel(IVoiceChannel channel = null)
         {
+            await Context.Message.DeleteAsync();
             // Get the audio channel
             if (channel == null)
                 channel = (Context.User as IGuildUser)?.VoiceChannel;
@@ -80,6 +81,11 @@ namespace App
             }
             catch (Exception e)
             {
+                await Context.Message.RemoveReactionAsync(new Emoji("✅"), Context.Client.CurrentUser);
+                await Context.Message.AddReactionAsync(new Emoji("❌"));
+                MessageReference refrence = new MessageReference(Context.Message.Id);
+                await Context.Channel.SendMessageAsync($"{Context.Message.Author.Mention} 검색 기록 없음", messageReference: refrence);
+                await Context.Message.DeleteAsync();
                 Console.WriteLine(e.Message);
             }
         }
