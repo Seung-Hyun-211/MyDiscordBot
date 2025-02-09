@@ -20,6 +20,8 @@ namespace App
         static string JsonPath = "JsonDatas/Songs.json";
         Dictionary<string, Video> history;
         List<Video> curList;
+
+        public Video? curPlay;
         private PlayList()
         {
             history = new Dictionary<string, Video>();
@@ -79,6 +81,7 @@ namespace App
         public string GetPath()
         {
             string nextPath = curList.Count() > 0 ? curList[0].Snippet.Title : "";
+            curPlay = curList.Count() > 0 ? curList[0] : null;
             curList.RemoveAt(0);
             return nextPath;
         }
@@ -113,6 +116,36 @@ namespace App
         public void RecordHistroy()
         {
             JsonFileHandler.Write<List<Video>>("JsonDatas/Songs.json", history.Values.ToList());
+        }
+
+        public List<Video> GetList()
+        {
+            return curList;
+        }
+
+        public void GetRandomVideos(int count = 50)
+        {
+            count = count > history.Count ? history.Count : count;
+
+            List<Video> videos = new List<Video>();
+            List<int> indexes = new List<int>();
+            var random = new Random();
+
+            for (int i = 0; i < count; i++)
+            {
+                int idx = random.Next() % history.Count();
+                if (!indexes.Contains(idx))
+                {
+                    curList.Add(history.ToList()[idx].Value);
+                    indexes.Add(idx);
+                }
+                else
+                {
+                    i--;
+                }
+            }
+
+
         }
         // public int SearchArtist(string artist)
         // {

@@ -90,6 +90,66 @@ namespace App
             }
         }
 
+        [Command("first", RunMode = RunMode.Async)]
+        public async Task PlayFirst(params string[] queries)
+        {
+            string[] tempQ = new string[queries.Length];
+            Array.Copy(queries, tempQ, queries.Length);
+            if (DiscordBot.audioClient == null)
+            {
+                JoinChannel((Context.User as IGuildUser)?.VoiceChannel);
+                Task.Delay(2000);
+            }
+
+            string fullString = string.Join(" ", queries);
+
+            await Context.Message.AddReactionAsync(new Emoji("✅"));
+            try
+            {
+                if (fullString.Contains("playlist?list="))
+                {
+                    var msg = await Context.Channel.SendMessageAsync("플레이리스트는 우선순위 불가");
+                    await msg.DeleteAsync();
+                    return;
+                }
+                else
+                {
+                    var search = await YT.GetVideoAsync(fullString);
+
+                    if (PlayList.Instance.SearchHistory(search.Id) == null)
+                    {
+                        await Context.Message.RemoveReactionAsync(new Emoji("✅"), Context.Client.CurrentUser);
+                        await Context.Message.AddReactionAsync(new Emoji("🔃"));
+                        if (await YT.DownloadMp3(search) == false)
+                        {
+                            await Context.Message.RemoveReactionAsync(new Emoji("🔃"), Context.Client.CurrentUser);
+                            await Context.Message.AddReactionAsync(new Emoji("❌"));
+
+                            return;
+                        }
+                        await Context.Message.RemoveReactionAsync(new Emoji("🔃"), Context.Client.CurrentUser);
+                        PlayList.Instance.AddHistroy(search);
+                        PlayList.Instance.RecordHistroy();
+                    }
+
+                    PlayList.Instance.AddFirst(search);
+
+                    await Context.Message.DeleteAsync();
+                    await Context.Channel.SendMessageAsync($"***{Context.Message.Author.GlobalName}*** - 먼저재생 : {search.Snippet.Title}");
+                    await DiscordBot.PlayMusic();
+                }
+            }
+            catch (Exception e)
+            {
+                await Context.Message.RemoveReactionAsync(new Emoji("✅"), Context.Client.CurrentUser);
+                await Context.Message.AddReactionAsync(new Emoji("❌"));
+                MessageReference refrence = new MessageReference(Context.Message.Id);
+                await Context.Channel.SendMessageAsync($"{Context.Message.Author.Mention} 검색 기록 없음", messageReference: refrence);
+                await Context.Message.DeleteAsync();
+                Console.WriteLine(e.Message);
+            }
+        }
+
         [Command("s", RunMode = RunMode.Async)]
         public async Task SkipCommand()
         {
@@ -103,6 +163,7 @@ namespace App
         [Command("random", RunMode = RunMode.Async)]
         public async Task RandomMix(params string[] queries)
         {
+            await Context.Message.DeleteAsync();
             PlayList.Instance.RandomMix();
             Context.Channel.SendMessageAsync("랜덤");
         }
@@ -145,8 +206,52 @@ namespace App
                     }
                 }
             }
-            Context.Channel.SendMessageAsync($"{count-f} 개 추가됨 (실패 : {f})");
+            Context.Channel.SendMessageAsync($"{count - f} 개 추가됨 (실패 : {f})");
         }
-    }
 
+
+        [Command("list", RunMode = RunMode.Async)]
+        public async Task PrintList(params string[] queries)
+        {
+            await Context.Message.DeleteAsync();
+            List<Video> videos = PlayList.Instance.GetList();
+            string title = "";
+            if (PlayList.Instance.curPlay != null)
+            {
+                title += $"\n**현재**\n```{ PlayList.Instance.curPlay.Snippet.Title}```";
+            }
+            title += $"**다음**\n";
+            string text = "";
+
+            for (int i = 0; i < 5 && i <videos.Count; i++)
+            {
+                text += $"{i+1} : {videos[i].Snippet.Title}\n";
+            }
+            text += $"Count : {videos.Count}";
+            string full = $"```{text}```";
+            await Context.Channel.SendMessageAsync(title + full);
+            return;
+        }
+
+        [Command("omakase", RunMode = RunMode.Async)]
+        public async Task Omakase(params string[] queries)
+        {
+            string[] tempQ = new string[queries.Length];
+            Array.Copy(queries, tempQ, queries.Length);
+            string fullString = string.Join(" ", queries);
+
+            if (int.TryParse(fullString, out var count))
+            {
+                PlayList.Instance.GetRandomVideos(count);
+            }
+            else
+            {
+                PlayList.Instance.GetRandomVideos();
+            }
+
+            DiscordBot.PlayMusic();
+            PrintList();
+
+        }    
+    }
 }
