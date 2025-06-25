@@ -1,4 +1,6 @@
+using Google.Apis.Util;
 using Google.Apis.YouTube.v3.Data;
+using System.IO;
 namespace App
 {
     public class PlayList
@@ -69,21 +71,60 @@ namespace App
             if (!history.ContainsKey(s.Id))
                 history.Add(s.Id, s);
         }
+        public void DeleteHistory(Video s)
+        {
+            string path = s.Snippet.Title;
 
+            var opusFilePath = $"Audio/{path}.opus"; // Opus 파일로 바로 저장
+
+            if (history.ContainsKey(s.Id))
+                history.Remove(s.Id);
+
+            RecordHistroy();
+
+            if (File.Exists(opusFilePath))
+            {
+                try
+                {
+                    File.Delete(opusFilePath);
+                }
+                catch (IOException e)
+                {
+                    Console.WriteLine("파일 제거 오류 : " + s.Snippet.Title);
+                }
+            }
+
+        }
         public void AddList(Video s)
         {
             curList.Add(s);
         }
         public void AddFirst(Video s)
         {
-            curList.Insert(0, s);
+            if (s != null)
+            {
+                curList.Insert(0, s);
+            }
         }
-        public string GetPath()
+        public string GetPath(bool repeat)
         {
             string nextPath = curList.Count() > 0 ? curList[0].Snippet.Title : "";
             curPlay = curList.Count() > 0 ? curList[0] : null;
-            curList.RemoveAt(0);
+            if (!repeat)
+            {
+                curList.RemoveAt(0);
+            }
             return nextPath;
+        }
+        public string Remove(int idx)
+        {
+            if (curList.Count() >= idx)
+            {
+                string title = curList[idx - 1].Snippet.Title;
+                curList.RemoveAt(idx - 1);
+                return title;
+            }
+            return "";
         }
         public int GetListCount()
         {

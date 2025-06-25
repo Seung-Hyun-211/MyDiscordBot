@@ -2,6 +2,7 @@ using Discord;
 using Discord.Audio;
 using Discord.Commands;
 using Google.Apis.YouTube.v3.Data;
+using static System.Net.Mime.MediaTypeNames;
 
 
 namespace App
@@ -12,7 +13,6 @@ namespace App
         [Command("join", RunMode = RunMode.Async)]
         public async Task JoinChannel(IVoiceChannel channel = null)
         {
-            await Context.Message.DeleteAsync();
             // Get the audio channel
             if (channel == null)
                 channel = (Context.User as IGuildUser)?.VoiceChannel;
@@ -24,6 +24,7 @@ namespace App
 
             await Context.Channel.SendMessageAsync("ㅎㅇ");
             DiscordBot.audioClient = await channel.ConnectAsync();
+            //await Context.Message.DeleteAsync();
         }
         [Command("p", RunMode = RunMode.Async)]
         public async Task PlayCommand(params string[] queries)
@@ -33,7 +34,7 @@ namespace App
             if (DiscordBot.audioClient == null)
             {
                 JoinChannel((Context.User as IGuildUser)?.VoiceChannel);
-                Task.Delay(2000);
+                await Task.Delay(5000);
             }
 
             string fullString = string.Join(" ", queries);
@@ -252,6 +253,63 @@ namespace App
             DiscordBot.PlayMusic();
             PrintList();
 
-        }    
+        }
+
+        [Command("repeat", RunMode = RunMode.Async)]
+        public async Task Repeat(params string[] queries)
+        {
+            DiscordBot.repeat = !DiscordBot.repeat;
+            await Context.Message.DeleteAsync();
+            string onoff = DiscordBot.repeat ? "On" : "Off";
+            await Context.Channel.SendMessageAsync($"반복 {onoff}");
+            if (!DiscordBot.repeat)
+            {
+                PlayList.Instance.Remove(0);
+            }
+            else
+            {
+                PlayList.Instance.AddFirst(PlayList.Instance.curPlay);
+            }
+        }
+
+        [Command("remove", RunMode = RunMode.Async)]
+        public async Task Remove(params string[] queries)
+        {
+            await Context.Message.DeleteAsync();
+            if (int.TryParse(queries.First(), out var idx))
+            {
+                var text = PlayList.Instance.Remove(idx);
+                await Context.Channel.SendMessageAsync($"지워짐 {text}");
+            }
+            else
+            {
+                await Context.Channel.SendMessageAsync($"잘못넣음");
+            }
+        }
+        [Command("delete", RunMode = RunMode.Async)]
+        public async Task Delete(params string[] queries)
+        {
+            await Context.Message.DeleteAsync();
+            Video? video = PlayList.Instance.curPlay;
+            
+            if (video == null) 
+                return;
+
+            DiscordBot.Skip();
+
+            PlayList.Instance.DeleteHistory(video);
+            await Context.Channel.SendMessageAsync($"오마카세에서 제거됨");
+        }
+
+        [Command("hibana", RunMode = RunMode.Async)]
+        public async Task Hibana(params string[] queries)
+        {
+            await Context.Channel.SendMessageAsync($"火花");
+            
+            await GetPlayList("https://www.youtube.com/playlist?list=PLp7APC9OqwXmbiSNZLlr0Y0Pe9FWencwf");
+            await PrintList();
+            DiscordBot.PlayMusic();
+            await Context.Message.DeleteAsync();
+        }
     }
 }

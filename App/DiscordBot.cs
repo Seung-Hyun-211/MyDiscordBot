@@ -17,6 +17,7 @@ namespace App
         public static bool nowPlaying;
         public static SocketCommandContext lastContext;
         public Queue<Action> requestQueue = new Queue<Action>();
+        public static bool repeat;
         public async Task StartBotAsync()
         {
             nowPlaying = false;
@@ -46,7 +47,7 @@ namespace App
                 if(requestQueue.Count > 0)
                     requestQueue.Dequeue().Invoke();
             }
-
+            repeat = false;
         }
         private async Task CommandAsync(SocketMessage msg)
         {
@@ -72,7 +73,7 @@ namespace App
             if (nowPlaying) return;
             nowPlaying = true;
 
-            string curPath = $"Audio/{PlayList.Instance.GetPath()}.opus"; // Opus 파일 경로
+            string curPath = $"Audio/{PlayList.Instance.GetPath(repeat)}.opus"; // Opus 파일 경로
             Console.WriteLine("현재 곡 위치 : " + curPath);
 
             if (!File.Exists(curPath))
@@ -90,22 +91,22 @@ namespace App
                     using (var pcmStream = ConvertOpusToPcm(curPath))
                     {
                         // PCM 스트리밍을 Discord로 전달
-                        using (var output = audioClient.CreatePCMStream(AudioApplication.Music))
-                        {
-                            byte[] buffer = new byte[4096];
-                            int bytesRead;
-
-                            while (nowPlaying && (bytesRead = await pcmStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                            using (var output = audioClient.CreatePCMStream(AudioApplication.Music))
                             {
-                                await output.WriteAsync(buffer, 0, bytesRead);
+                                    byte[] buffer = new byte[4096];
+                                    int bytesRead;
 
-                                if (bytesRead < buffer.Length)
-                                {
-                                    await Task.Delay(20);
-                                }
-                            }
+                                    while (nowPlaying && (bytesRead = await pcmStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                                    {
+                                        await output.WriteAsync(buffer, 0, bytesRead);
 
-                            await output.FlushAsync();
+                                        if (bytesRead < buffer.Length)
+                                        {
+                                            await Task.Delay(20);
+                                        }
+                                    }
+
+                                    await output.FlushAsync();
                         }
                     }
                 }
