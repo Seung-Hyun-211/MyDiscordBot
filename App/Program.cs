@@ -13,6 +13,8 @@
                 Console.WriteLine("봇 생성중");
                 new DiscordBot().StartBotAsync().GetAwaiter().GetResult();
                 await Task.Delay(-1);
+
+                Console.WriteLine("*********************");
             }
             catch (TaskCanceledException)
             {

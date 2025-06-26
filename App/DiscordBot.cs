@@ -8,15 +8,11 @@ namespace App
 {
     class DiscordBot
     {
-        internal DiscordSocketClient client;
+        internal DiscordSocketClient? client;
         public static IAudioClient? audioClient;
-        internal IVoiceChannel voiceChannel;
-
-        private CommandService commands;
-        private IServiceProvider service;
+        private CommandService? commands;
+        private IServiceProvider? service;
         public static bool nowPlaying;
-        public static SocketCommandContext lastContext;
-        public Queue<Action> requestQueue = new Queue<Action>();
         public async Task StartBotAsync()
         {
             nowPlaying = false;
@@ -38,15 +34,7 @@ namespace App
             client.MessageReceived += CommandAsync;
             client.Log += DiscordLog;
 
-            //안꺼지게
-            
-            while(true)
-            {
-                await Task.Delay(1000);
-                if(requestQueue.Count > 0)
-                    requestQueue.Dequeue().Invoke();
-            }
-
+            //await Task.Delay(-1);
         }
         private async Task CommandAsync(SocketMessage msg)
         {
@@ -97,7 +85,16 @@ namespace App
 
                             while (nowPlaying && (bytesRead = await pcmStream.ReadAsync(buffer, 0, buffer.Length)) > 0)
                             {
-                                await output.WriteAsync(buffer, 0, bytesRead);
+                                try
+                                {
+                                    await output.WriteAsync(buffer, 0, bytesRead);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Error Msg: {ex.Message}");
+                                    
+                                    await Task.Delay(20);
+                                }
 
                                 if (bytesRead < buffer.Length)
                                 {

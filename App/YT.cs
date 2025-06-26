@@ -147,7 +147,7 @@ namespace App
                     {
                         var stream = await youtube.Videos.Streams.GetAsync(audioStreamInfo);
                         string path = video.Snippet.Title;
-
+                        Console.WriteLine($"bitrate : {audioStreamInfo.Bitrate}");
                         var opusFilePath = $"Audio/{path}.opus"; // Opus 파일로 바로 저장
 
                         // Opus로 다운로드

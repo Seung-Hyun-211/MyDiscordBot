@@ -22,14 +22,5 @@ namespace App
                 writer.Write(json);
             }
         }
-
-        public static void Write<T>(string filePath, List<T> items)
-        {
-            string json = JsonConvert.SerializeObject(items, Formatting.Indented);
-            using (StreamWriter writer = new StreamWriter(filePath))
-            {
-                writer.Write(json);
-            }
-        }
     }
 }

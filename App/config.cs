@@ -2,7 +2,7 @@ namespace App
 {
     public class Config
     {
-        public string DiscordToken;
-        public string YoutubeToken;
+        public string? DiscordToken;
+        public string? YoutubeToken;
     }
 }

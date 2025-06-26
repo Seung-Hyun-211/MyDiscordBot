@@ -3,7 +3,7 @@ namespace App
 {
     public class PlayList
     {
-        private static PlayList _instance;
+        private static PlayList? _instance;
         public static PlayList Instance
         {
             get
