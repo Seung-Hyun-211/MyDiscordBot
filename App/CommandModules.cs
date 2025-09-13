@@ -23,6 +23,12 @@ namespace App
             }
 
             await Context.Channel.SendMessageAsync("ㅎㅇ");
+            if (DiscordBot.audioClient != null && DiscordBot.audioClient.ConnectionState == ConnectionState.Connected)
+            {
+                PlayList.Instance.curList.Clear();
+                DiscordBot.Skip();
+                await DiscordBot.audioClient.StopAsync();
+            }
             DiscordBot.audioClient = await channel.ConnectAsync();
             //await Context.Message.DeleteAsync();
         }
@@ -310,6 +316,16 @@ namespace App
             await PrintList();
             DiscordBot.PlayMusic();
             await Context.Message.DeleteAsync();
+        }
+
+        [Command("clear", RunMode = RunMode.Async)]
+        public async Task Clear(params string[] queries)
+        {
+            int count = int.Parse(queries[0]);
+            var messages = await Context.Channel.GetMessagesAsync(count + 1).FlattenAsync();
+            await (Context.Channel as ITextChannel).DeleteMessagesAsync(messages);
+
+            await Context.Channel.SendMessageAsync($"{count}개 채팅 제거됨");
         }
     }
 }

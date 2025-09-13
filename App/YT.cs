@@ -73,6 +73,11 @@ namespace App
             {
                 var videos = searchResponse.Items.OfType<Video>().ToList();
                 videos[0].Snippet.Title = ReplaceInvalidFileNameChars(videos[0].Snippet.Title);
+                videos[0].Snippet.ChannelId = ReplaceInvalidFileNameChars(videos[0].Snippet.ChannelId);
+
+
+                if (!Directory.Exists($"Audio/{videos[0].Snippet.ChannelId}"))
+                    Directory.CreateDirectory($"Audio/{videos[0].Snippet.ChannelId}");
                 return videos[0];
             }
             else
@@ -102,6 +107,12 @@ namespace App
                 if (videoResponse.Items.Count > 0)
                 {
                     videoResponse.Items[0].Snippet.Title = ReplaceInvalidFileNameChars(videoResponse.Items[0].Snippet.Title);
+                    videoResponse.Items[0].Snippet.ChannelId = ReplaceInvalidFileNameChars(videoResponse.Items[0].Snippet.ChannelId);
+
+
+                    if (!Directory.Exists($"Audio/{videoResponse.Items[0].Snippet.ChannelId}"))
+                        Directory.CreateDirectory($"Audio/{videoResponse.Items[0].Snippet.ChannelId}");
+
                     return videoResponse.Items[0];
                 }
             }
@@ -148,7 +159,7 @@ namespace App
                         var stream = await youtube.Videos.Streams.GetAsync(audioStreamInfo);
                         string path = video.Snippet.Title;
 
-                        var opusFilePath = $"Audio/{path}.opus"; // Opus 파일로 바로 저장
+                        var opusFilePath = $"Audio/{video.Snippet.ChannelId}/{video.Snippet.Title}.opus"; // Opus 파일로 바로 저장
 
                         // Opus로 다운로드
                         using (var fileStream = new FileStream(opusFilePath, FileMode.Create, FileAccess.Write, FileShare.None))

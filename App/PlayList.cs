@@ -20,8 +20,8 @@ namespace App
         }
 
         static string JsonPath = "JsonDatas/Songs.json";
-        Dictionary<string, Video> history;
-        List<Video> curList;
+        public Dictionary<string, Video> history;
+        public List<Video> curList;
 
         public Video? curPlay;
         private PlayList()
@@ -73,7 +73,7 @@ namespace App
         }
         public void DeleteHistory(Video s)
         {
-            string path = s.Snippet.Title;
+            string path = $"{s.Snippet.ChannelId }/{s.Snippet.Title}";
 
             var opusFilePath = $"Audio/{path}.opus"; // Opus 파일로 바로 저장
 
@@ -108,12 +108,18 @@ namespace App
         }
         public string GetPath(bool repeat)
         {
-            string nextPath = curList.Count() > 0 ? curList[0].Snippet.Title : "";
+            string nextPath = curList.Count() > 0 ? $"{curList[0].Snippet.Title}" : "";
+            Console.WriteLine(nextPath);
             curPlay = curList.Count() > 0 ? curList[0] : null;
             if (!repeat)
             {
                 curList.RemoveAt(0);
             }
+            return nextPath;
+        }
+        public string GetFolder()
+        {
+            string nextPath = curList.Count() > 0 ? $"{curList[0].Snippet.ChannelId}" : "";
             return nextPath;
         }
         public string Remove(int idx)

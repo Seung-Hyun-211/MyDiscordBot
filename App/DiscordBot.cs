@@ -3,13 +3,13 @@ using Discord.WebSocket;
 using Discord.Commands;
 using Discord.Audio;
 using System.Diagnostics;
+using NAudio.Wave.Compression;
 
 namespace App
 {
     class DiscordBot
     {
         internal DiscordSocketClient client;
-        public static IAudioClient? audioClient;
         internal IVoiceChannel voiceChannel;
 
         private CommandService commands;
@@ -59,6 +59,8 @@ namespace App
             int argPos = 0;
             if (userMsg.HasStringPrefix("!", ref argPos))
             {
+               // JoinVoiceAsync(context);
+                await Task.Delay(10);
                 var result = await commands.ExecuteAsync(context, argPos, service);
                 if (!result.IsSuccess) Console.WriteLine("error ... ?");
             }
@@ -68,12 +70,30 @@ namespace App
             Console.WriteLine(log);
             return Task.CompletedTask;
         }
+
+        public static IAudioClient? audioClient;
+
+        public async Task JoinVoiceAsync(SocketCommandContext context)
+        {
+            var voiceChannel = (context.User as IGuildUser)?.VoiceChannel;
+
+            if (voiceChannel == null)
+            {
+                await context.Channel.SendMessageAsync("먼저 음성 채널에 들어가 주세요.");
+                return;
+            }
+
+            // ConnectAsync()는 반드시 await 해야 합니다.
+            audioClient = await voiceChannel.ConnectAsync();
+
+            await context.Channel.SendMessageAsync($"{voiceChannel.Name} 채널에 접속했습니다.");
+        }
         public static async Task PlayMusic()
         {
             if (nowPlaying) return;
             nowPlaying = true;
 
-            string curPath = $"Audio/{PlayList.Instance.GetPath(repeat)}.opus"; // Opus 파일 경로
+            string curPath = $"Audio/{PlayList.Instance.GetFolder()}/{PlayList.Instance.GetPath(repeat)}.opus"; // Opus 파일 경로
             Console.WriteLine("현재 곡 위치 : " + curPath);
 
             if (!File.Exists(curPath))
@@ -108,10 +128,13 @@ namespace App
 
                                     await output.FlushAsync();
                         }
+                        Console.WriteLine($"[DEBUG] pcmStream is null: {pcmStream == null}");
                     }
                 }
                 catch (Exception ex)
                 {
+                    Console.WriteLine($"[DEBUG] curPath = {curPath}");
+                    Console.WriteLine($"[DEBUG] audioClient is null: {audioClient == null}");
                     Console.WriteLine($"Error playing Opus file: {ex.Message}");
                 }
             }
