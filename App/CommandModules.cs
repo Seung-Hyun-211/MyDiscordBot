@@ -2,6 +2,7 @@ using Discord;
 using Discord.Audio;
 using Discord.Commands;
 using Google.Apis.YouTube.v3.Data;
+using System.Collections.Generic;
 using static System.Net.Mime.MediaTypeNames;
 
 
@@ -339,6 +340,23 @@ namespace App
             await (Context.Channel as ITextChannel).DeleteMessagesAsync(messages);
 
             await Context.Channel.SendMessageAsync($"{count}개 채팅 제거됨");
+        }
+
+        [Command("clearbot",RunMode = RunMode.Async)]
+        public async Task ClearBot(params string[] queries)
+        {
+            var messages = await Context.Channel.GetMessagesAsync(200).FlattenAsync();
+            int count = 0;
+            
+            foreach (var msg in messages)
+            {
+                if (msg.Author.IsBot)
+                {
+                    await (Context.Channel as ITextChannel).DeleteMessageAsync(msg);
+                    count++;
+                }
+            }
+            await Context.Channel.SendMessageAsync($"봇 채팅 {count}개 채팅 제거됨");
         }
     }
 }

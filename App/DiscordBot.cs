@@ -40,14 +40,14 @@ namespace App
             client.Log += DiscordLog;
 
             //안꺼지게
-            
-            while(true)
+
+            repeat = false;
+            while (true)
             {
                 await Task.Delay(1000);
                 if(requestQueue.Count > 0)
                     requestQueue.Dequeue().Invoke();
             }
-            repeat = false;
         }
         private async Task CommandAsync(SocketMessage msg)
         {
