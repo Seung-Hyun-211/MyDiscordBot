@@ -10,6 +10,19 @@ namespace App
     public class CommandModules : ModuleBase<SocketCommandContext>
     {
         IAudioClient audioClient;
+
+        [Command("refresh", RunMode = RunMode.Async)]
+        public async Task Refresh(params string[] queries)
+        {
+            await Context.Channel.SendMessageAsync("음성채널 재접속...");
+            DiscordBot.Skip();
+            
+            await DiscordBot.audioClient.StopAsync();
+            await Task.Delay(1000);
+            
+            JoinChannel((Context.User as IGuildUser)?.VoiceChannel);
+        }
+
         [Command("join", RunMode = RunMode.Async)]
         public async Task JoinChannel(IVoiceChannel channel = null)
         {
