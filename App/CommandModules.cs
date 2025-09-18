@@ -358,5 +358,14 @@ namespace App
             }
             await Context.Channel.SendMessageAsync($"봇 채팅 {count}개 채팅 제거됨");
         }
+
+        [Command("leave", RunMode = RunMode.Async)]
+        public async Task Leave(params string[] queries)
+        {
+            PlayList.Instance.curList.Clear();
+            DiscordBot.Skip();
+            await Context.Channel.SendMessageAsync($"잘자용");
+            await DiscordBot.audioClient.StopAsync();
+        }
     }
 }
